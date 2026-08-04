@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 
 export default function App() {
   const [events, setEvents] = useState([])
@@ -27,23 +27,40 @@ export default function App() {
       .catch(console.error)
   }
 
+  // build table headers dynamically from event keys so all properties show up
+  const headers = useMemo(() => {
+    const keys = new Set()
+    events.forEach(ev => {
+      if (ev && typeof ev === 'object') {
+        Object.keys(ev).forEach(k => keys.add(k))
+      }
+    })
+    // provide a stable ordering for common fields first
+    const commonOrder = ['id', 'title', 'date', 'location', 'description', 'maxCapacity', 'attendees']
+    const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]
+    return ordered
+  }, [events])
+
   return (
     <div className="app">
       <header>
-        <h1>Event Management App (Minimal)</h1>
+        <h1>Event Management App</h1>
       </header>
 
       <main>
         <form onSubmit={addEvent} className="add-form">
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="New event title" />
-          <button type="submit">Add</button>
+          <button type="submit">Add New Event</button>
         </form>
 
         <ul className="events">
           {events.map(ev => (
             <li key={ev.id}>
               <strong>{ev.title}</strong>
-              <div className="meta">{ev.date || ''} {ev.location ? `— ${ev.location}` : ''}</div>
+              {ev.description && <p className="description">{ev.description}</p>}
+              <div className="meta">
+                {ev.date || ''}{ev.location ? ` — ${ev.location}` : ''}{(ev.maxCapacity !== undefined && ev.maxCapacity !== null) ? ` — Capacity: ${ev.maxCapacity}` : ''}
+              </div>
             </li>
           ))}
         </ul>
