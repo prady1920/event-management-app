@@ -53,26 +53,17 @@ export default function App() {
           <button type="submit">Add</button>
         </form>
 
-        {/* table view for events */}
-        <table className="events-table">
-          <thead>
-            <tr>
-              {headers.map(h => (
-                <th key={h}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((ev, idx) => (
-              <tr key={ev.id ?? idx}>
-                {headers.map(h => (
-                  <td key={h}>{ev && ev[h] != null ? String(ev[h]) : ''}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
+        <ul className="events">
+          {events.map(ev => (
+            <li key={ev.id}>
+              <strong>{ev.title}</strong>
+              {ev.description && <p className="description">{ev.description}</p>}
+              <div className="meta">
+                {ev.date || ''}{ev.location ? ` — ${ev.location}` : ''}{(ev.maxCapacity !== undefined && ev.maxCapacity !== null) ? ` — Capacity: ${ev.maxCapacity}` : ''}
+              </div>
+            </li>
+          ))}
+        </ul>
       </main>
     </div>
   )
