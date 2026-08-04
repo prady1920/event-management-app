@@ -119,5 +119,15 @@ app.put('/api/events/:id', (req, res) => {
   res.json(event)
 })
 
+// Delete an event
+app.delete('/api/events/:id', (req, res) => {
+  const eventId = Number(req.params.id)
+  const idx = events.findIndex(e => e.id === eventId)
+  if (idx === -1) return res.status(404).json({ error: 'Event not found' })
+
+  const [removed] = events.splice(idx, 1)
+  res.json(removed)
+})
+
 const port = process.env.PORT || 5000
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`))
