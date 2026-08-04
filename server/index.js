@@ -59,5 +59,35 @@ app.get('/api/events/:id/attendees', (req, res) => {
   res.json(event.attendees)
 })
 
+// Unregister an attendee by attendee ID
+app.delete('/api/events/:id/attendees/:attendeeId', (req, res) => {
+  const eventId = Number(req.params.id)
+  const attendeeId = Number(req.params.attendeeId)
+  const event = events.find(e => e.id === eventId)
+  if (!event) return res.status(404).json({ error: 'Event not found' })
+
+  const idx = event.attendees.findIndex(a => a.id === attendeeId)
+  if (idx === -1) return res.status(404).json({ error: 'Attendee not found' })
+
+  const [removed] = event.attendees.splice(idx, 1)
+  res.json(removed)
+})
+
+// Unregister an attendee by email (pass { email } in body)
+app.delete('/api/events/:id/attendees', (req, res) => {
+  const eventId = Number(req.params.id)
+  const { email } = req.body
+  if (!email) return res.status(400).json({ error: 'email is required in request body to unregister' })
+
+  const event = events.find(e => e.id === eventId)
+  if (!event) return res.status(404).json({ error: 'Event not found' })
+
+  const idx = event.attendees.findIndex(a => a.email === email)
+  if (idx === -1) return res.status(404).json({ error: 'Attendee not found' })
+
+  const [removed] = event.attendees.splice(idx, 1)
+  res.json(removed)
+})
+
 const port = process.env.PORT || 5000
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`))
