@@ -43,7 +43,10 @@ export default function App() {
           {events.map(ev => (
             <li key={ev.id}>
               <strong>{ev.title}</strong>
-              <div className="meta">{ev.date || ''} {ev.location ? `— ${ev.location}` : ''}</div>
+              {ev.description && <p className="description">{ev.description}</p>}
+              <div className="meta">
+                {ev.date || ''}{ev.location ? ` — ${ev.location}` : ''}{(ev.maxCapacity !== undefined && ev.maxCapacity !== null) ? ` — Capacity: ${ev.maxCapacity}` : ''}
+              </div>
             </li>
           ))}
         </ul>
