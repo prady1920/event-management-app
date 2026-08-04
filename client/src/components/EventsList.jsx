@@ -117,16 +117,48 @@ export default function EventsList({ events, headers, onEventUpdated, onEventDel
     }
   }
 
-  // simple inline SVG icons
+  // pencil (edit) and trash (delete) icons (Heroicons-inspired, accessible)
   const EditIcon = ({ loading }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${loading ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5h6M4 15.5V19a1 1 0 001 1h3.5L20 9.5a2.121 2.121 0 000-3L17.5 3.5a2.121 2.121 0 00-3 0L4 13.5z" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className={`h-5 w-5 ${loading ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800'}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-hidden="true"
+      style={{ color: loading ? '#9CA3AF' : '#2563EB' }}
+    >
+      <path d="M11 5h6" />
+      <path d="M4 15.5V19a1 1 0 001 1h3.5L20 9.5a2.121 2.121 0 000-3L17.5 3.5a2.121 2.121 0 00-3 0L4 13.5z" />
     </svg>
   )
 
   const DeleteIcon = ({ loading }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${loading ? 'text-gray-400' : 'text-red-600 hover:text-red-800'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className={`h-5 w-5 ${loading ? 'text-gray-400' : 'text-red-600 hover:text-red-800'}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-hidden="true"
+      style={{ color: loading ? '#9CA3AF' : '#DC2626' }}
+    >
+      <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" />
+      <path d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
     </svg>
   )
 
