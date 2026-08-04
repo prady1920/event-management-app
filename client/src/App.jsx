@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 
 export default function App() {
   const [events, setEvents] = useState([])
@@ -27,6 +27,20 @@ export default function App() {
       .catch(console.error)
   }
 
+  // build table headers dynamically from event keys so all properties show up
+  const headers = useMemo(() => {
+    const keys = new Set()
+    events.forEach(ev => {
+      if (ev && typeof ev === 'object') {
+        Object.keys(ev).forEach(k => keys.add(k))
+      }
+    })
+    // provide a stable ordering for common fields first
+    const commonOrder = ['id', 'title', 'description', 'date', 'location', 'maxCapacity', 'max_capacity', 'capacity']
+    const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]
+    return ordered
+  }, [events])
+
   return (
     <div className="app">
       <header>
@@ -39,14 +53,26 @@ export default function App() {
           <button type="submit">Add</button>
         </form>
 
-        <ul className="events">
-          {events.map(ev => (
-            <li key={ev.id}>
-              <strong>{ev.title}</strong>
-              <div className="meta">{ev.date || ''} {ev.location ? `— ${ev.location}` : ''}</div>
-            </li>
-          ))}
-        </ul>
+        {/* table view for events */}
+        <table className="events-table">
+          <thead>
+            <tr>
+              {headers.map(h => (
+                <th key={h}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((ev, idx) => (
+              <tr key={ev.id ?? idx}>
+                {headers.map(h => (
+                  <td key={h}>{ev && ev[h] != null ? String(ev[h]) : ''}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
       </main>
     </div>
   )
