@@ -49,12 +49,6 @@ export default function App() {
 
       <main className="max-w-6xl mx-auto">
         <form onSubmit={addEvent} className="mb-8 flex gap-3">
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="New event title"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
           <button
             type="submit"
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
