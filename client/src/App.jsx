@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 
 export default function App() {
   const [events, setEvents] = useState([])
@@ -26,6 +26,20 @@ export default function App() {
       })
       .catch(console.error)
   }
+
+  // build table headers dynamically from event keys so all properties show up
+  const headers = useMemo(() => {
+    const keys = new Set()
+    events.forEach(ev => {
+      if (ev && typeof ev === 'object') {
+        Object.keys(ev).forEach(k => keys.add(k))
+      }
+    })
+    // provide a stable ordering for common fields first
+    const commonOrder = ['id', 'title', 'description', 'date', 'location', 'maxCapacity', 'max_capacity', 'capacity']
+    const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]
+    return ordered
+  }, [events])
 
   return (
     <div className="app">
