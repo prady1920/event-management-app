@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import AddEventForm from './components/AddEventForm'
 
 export default function App() {
   const [events, setEvents] = useState([])
-  const [title, setTitle] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     fetch('http://localhost:5000/api/events')
@@ -10,22 +11,6 @@ export default function App() {
       .then(setEvents)
       .catch(console.error)
   }, [])
-
-  function addEvent(e) {
-    e.preventDefault()
-    if (!title) return
-    fetch('http://localhost:5000/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title })
-    })
-      .then(res => res.json())
-      .then(newEvent => {
-        setEvents(prev => [...prev, newEvent])
-        setTitle('')
-      })
-      .catch(console.error)
-  }
 
   // build table headers dynamically from event keys so all properties show up
   const headers = useMemo(() => {
@@ -41,6 +26,10 @@ export default function App() {
     return ordered
   }, [events])
 
+  function handleAdd(newEvent) {
+    setEvents(prev => [...prev, newEvent])
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <header className="max-w-6xl mx-auto mb-8">
@@ -48,14 +37,24 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto">
-        <form onSubmit={addEvent} className="mb-8 flex gap-3">
+        <div className="mb-8 flex gap-3">
           <button
-            type="submit"
+            type="button"
+            onClick={() => setShowForm(true)}
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             Add New Event
           </button>
-        </form>
+        </div>
+
+        {showForm && (
+          <div className="mb-8">
+            <AddEventForm
+              onAdd={(ev) => { handleAdd(ev); setShowForm(false) }}
+              onClose={() => setShowForm(false)}
+            />
+          </div>
+        )}
 
         {events.length > 0 ? (
           <div className="overflow-x-auto shadow-md rounded-lg">
@@ -74,10 +73,10 @@ export default function App() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {events.map((ev, index) => (
-                  <tr key={ev.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} >
+                  <tr key={ev.id ?? index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} >
                     {headers.map(header => (
                       <td
-                        key={`${ev.id}-${header}`}
+                        key={`${ev.id ?? index}-${header}`}
                         className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
                       >
                         {ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—'}
