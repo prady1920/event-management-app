@@ -44,7 +44,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Event Management App (Minimal)</h1>
+        <h1>Event Management App</h1>
       </header>
 
       <main>
