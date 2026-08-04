@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 
 export default function EventsList({ events, headers, onEventUpdated, onEventDeleted }) {
   const [editingEvent, setEditingEvent] = useState(null) // event object being edited
@@ -6,6 +6,12 @@ export default function EventsList({ events, headers, onEventUpdated, onEventDel
   const [deleteLoadingId, setDeleteLoadingId] = useState(null)
   const [formErrors, setFormErrors] = useState({})
   const [formValues, setFormValues] = useState({ title: '', date: '', location: '', description: '', maxCapacity: '' })
+
+  // Ensure the Actions column is always present even if headers come from the backend
+  const displayedHeaders = useMemo(() => {
+    if (!Array.isArray(headers)) return ['Actions']
+    return headers.includes('Actions') ? headers : [...headers, 'Actions']
+  }, [headers])
 
   useEffect(() => {
     if (editingEvent) {
@@ -169,7 +175,7 @@ export default function EventsList({ events, headers, onEventUpdated, onEventDel
           <table className="w-full bg-white border-collapse">
             <thead>
               <tr className="bg-gray-100 border-b-2 border-gray-200">
-                {headers.map(header => (
+                {displayedHeaders.map(header => (
                   <th
                     key={header}
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
@@ -177,46 +183,43 @@ export default function EventsList({ events, headers, onEventUpdated, onEventDel
                     {header}
                   </th>
                 ))}
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  Actions
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {events.map((ev, index) => (
                 <tr key={ev.id ?? index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} >
-                  {headers.map(header => (
+                  {displayedHeaders.map(header => (
                     <td
                       key={`${ev.id ?? index}-${header}`}
                       className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
                     >
-                      {header === '_optimistic' ? (ev._optimistic ? 'saving…' : 'committed') : (ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—')}
+                      {header === 'Actions' ? (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => openEditModal(ev)}
+                            aria-label={`Edit event ${ev.id ?? ''}`}
+                            className="p-1 rounded-md hover:bg-gray-100"
+                            title="Edit"
+                            disabled={editLoadingId === ev.id || deleteLoadingId === ev.id}
+                          >
+                            <EditIcon loading={editLoadingId === ev.id} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(ev)}
+                            aria-label={`Delete event ${ev.id ?? ''}`}
+                            className="p-1 rounded-md hover:bg-gray-100"
+                            title="Delete"
+                            disabled={deleteLoadingId === ev.id || editLoadingId === ev.id}
+                          >
+                            <DeleteIcon loading={deleteLoadingId === ev.id} />
+                          </button>
+                        </div>
+                      ) : (
+                        (header === '_optimistic' ? (ev._optimistic ? 'saving…' : 'committed') : (ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—'))
+                      )}
                     </td>
                   ))}
-
-                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => openEditModal(ev)}
-                        aria-label={`Edit event ${ev.id ?? ''}`}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title="Edit"
-                        disabled={editLoadingId === ev.id || deleteLoadingId === ev.id}
-                      >
-                        <EditIcon loading={editLoadingId === ev.id} />
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(ev)}
-                        aria-label={`Delete event ${ev.id ?? ''}`}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title="Delete"
-                        disabled={deleteLoadingId === ev.id || editLoadingId === ev.id}
-                      >
-                        <DeleteIcon loading={deleteLoadingId === ev.id} />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
