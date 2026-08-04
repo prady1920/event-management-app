@@ -4,12 +4,16 @@ import AddEventForm from './components/AddEventForm'
 export default function App() {
   const [events, setEvents] = useState([])
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:5000/api/events')
       .then(res => res.json())
       .then(setEvents)
-      .catch(console.error)
+      .catch(err => {
+        console.error(err)
+        setError('Failed to load events')
+      })
   }, [])
 
   // build table headers dynamically from event keys so all properties show up
@@ -26,8 +30,31 @@ export default function App() {
     return ordered
   }, [events])
 
-  function handleAdd(newEvent) {
-    setEvents(prev => [...prev, newEvent])
+  // optimistic add: immediately add a temporary event, then POST; replace on success, remove and show error on failure
+  async function addEventOptimistic(eventBody) {
+    const tempId = `temp-${Date.now()}`
+    const tempEvent = { id: tempId, ...eventBody, _optimistic: true }
+    setEvents(prev => [...prev, tempEvent])
+
+    try {
+      const res = await fetch('http://localhost:5000/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventBody)
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Server error')
+      }
+      const created = await res.json()
+      setEvents(prev => prev.map(ev => (ev.id === tempId ? created : ev)))
+      return created
+    } catch (err) {
+      console.error('Failed to create event', err)
+      setEvents(prev => prev.filter(ev => ev.id !== tempId))
+      setError(err.message || 'Failed to create event')
+      throw err
+    }
   }
 
   return (
@@ -37,6 +64,18 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto">
+        {error && (
+          <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 flex justify-between items-center">
+            <p className="text-sm text-red-700">{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="text-sm text-red-700 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <div className="mb-8 flex gap-3">
           <button
             type="button"
@@ -48,12 +87,10 @@ export default function App() {
         </div>
 
         {showForm && (
-          <div className="mb-8">
-            <AddEventForm
-              onAdd={(ev) => { handleAdd(ev); setShowForm(false) }}
-              onClose={() => setShowForm(false)}
-            />
-          </div>
+          <AddEventForm
+            onAddOptimistic={addEventOptimistic}
+            onClose={() => setShowForm(false)}
+          />
         )}
 
         {events.length > 0 ? (
@@ -79,7 +116,7 @@ export default function App() {
                         key={`${ev.id ?? index}-${header}`}
                         className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
                       >
-                        {ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—'}
+                        {header === '_optimistic' ? (ev._optimistic ? 'saving…' : 'committed') : (ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—')}
                       </td>
                     ))}
                   </tr>
