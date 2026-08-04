@@ -89,5 +89,33 @@ app.delete('/api/events/:id/attendees', (req, res) => {
   res.json(removed)
 })
 
+// Update an existing event
+app.put('/api/events/:id', (req, res) => {
+  const eventId = Number(req.params.id)
+  const event = events.find(e => e.id === eventId)
+  if (!event) return res.status(404).json({ error: 'Event not found' })
+
+  const { title, date, location, description, maxCapacity } = req.body
+
+  // If maxCapacity is provided, ensure it's a non-negative integer and not less than current attendees
+  if (maxCapacity != null) {
+    const capacityNum = Number(maxCapacity)
+    if (isNaN(capacityNum) || capacityNum < 0) {
+      return res.status(400).json({ error: 'maxCapacity must be a non-negative number' })
+    }
+    if (capacityNum > 0 && capacityNum < event.attendees.length) {
+      return res.status(400).json({ error: 'maxCapacity cannot be less than current number of attendees' })
+    }
+    event.maxCapacity = capacityNum
+  }
+
+  if (title != null) event.title = title
+  if (date != null) event.date = date
+  if (location != null) event.location = location
+  if (description != null) event.description = description
+
+  res.json(event)
+})
+
 const port = process.env.PORT || 5000
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`))
