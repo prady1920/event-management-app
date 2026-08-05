@@ -369,20 +369,6 @@ async function deleteEvent(eventId) {
         Create, manage, and register attendees — fast, simple, and delightful.
       </p>
     </div>
-
-    {/* badges / actions */}
-    <div className="flex items-center gap-3">
-      <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-sm font-medium text-white/95">
-        v1.0
-      </span>
-      <button
-        type="button"
-        onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
-        className="hidden sm:inline-flex px-4 py-2 bg-white text-blue-700 font-semibold rounded-md shadow-sm hover:bg-white/90 transition"
-      >
-        Get Started
-      </button>
-    </div>
   </div>
 </header>
 
