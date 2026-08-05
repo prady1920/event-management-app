@@ -14,7 +14,7 @@ export default function App() {
   const status = useSelector(state => state.events.status)
   const storeError = useSelector(state => state.events.error)
   const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
+  const [success, setSuccess] = useState(null)              
 
  useEffect(() => {
   	if (status === 'idle') {
@@ -141,6 +141,24 @@ export default function App() {
     dispatch(removeEvent(tempId))
     setError(err.message || 'Failed to create event')
     throw err
+  }
+}
+
+// fetch attendees for an event
+async function showAttendees(eventId) {
+  if (!eventId) { setError('Missing event id'); return }
+  setAttendeesModal({ open: true, loading: true, items: [], eventId, error: null })
+  try {
+    const res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(eventId)}/attendees`)
+    if (!res.ok) {
+      const text = await res.text()
+      setAttendeesModal(prev => ({ ...prev, loading: false, error: text || `Failed to load attendees (status ${res.status})` }))
+      return
+    }
+    const items = await res.json()
+    setAttendeesModal({ open: true, loading: false, items, eventId, error: null })
+  } catch (err) {
+    setAttendeesModal({ open: true, loading: false, items: [], eventId, error: err.message || 'Failed to fetch attendees' })
   }
 }
 
