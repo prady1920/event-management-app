@@ -39,19 +39,21 @@ app.post('/api/events/:id/register', (req, res) => {
   const { name, email } = req.body
   if (!name || !email) return res.status(400).json({ error: 'name and email are required to register' })
 
-  // Enforce maxCapacity only when it's a positive number
-  if (event.maxCapacity > 0 && event.attendees.length >= event.maxCapacity) {
-    return res.status(400).json({ error: 'Event is full' })
-  }
-
   // Simple duplicate check by email
   const alreadyRegistered = event.attendees.some(a => a.email === email)
   if (alreadyRegistered) return res.status(400).json({ error: 'Attendee with this email is already registered' })
 
   const attendee = { id: event.attendees.length + 1, name: name , email: email }
   event.attendees.push(attendee)
+  
+  // Enforce maxCapacity only when it's a positive number
+  if (event.maxCapacity > 0 && event.attendees.length > event.maxCapacity) {
+    return res.status(400).json({ error: 'Event is full' })
+  }
+  else {
   // Return a helpful response including the event title
-  res.status(201).json({ message: `User successfully added to event ${event.title}`, attendee })
+    res.status(201).json({ message: `User successfully added to event ${event.title}`, attendee })
+  }
 
 })
 
