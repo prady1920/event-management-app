@@ -18,8 +18,8 @@ export default function App() {
 
  useEffect(() => {
   	if (status === 'idle') {
-    	dispatch(fetchEvents())
-   	}
+      	dispatch(fetchEvents())
+     	}
 	}, [status, dispatch])
 	
   // build table headers dynamically from event keys so all properties show up
@@ -38,6 +38,7 @@ export default function App() {
 
   // state + functions for viewing attendees list
   const [attendeesModal, setAttendeesModal] = useState({ open: false, loading: false, items: [], eventId: null, error: null })
+  const [unregistering, setUnregistering] = useState({})
 
   async function showAttendees(eventId) {
     if (!eventId) {
@@ -208,6 +209,75 @@ async function showAttendees(eventId) {
   }
 }
 
+// unregister an attendee from the currently-open event
+async function unregisterAttendee(attendee) {
+  if (!attendeesModal.eventId) {
+    setError('Missing event id')
+    return
+  }
+  const aKey = attendee.id ?? attendee.email ?? JSON.stringify(attendee)
+  setUnregistering(prev => ({ ...prev, [aKey]: true }))
+  setError(null)
+  setSuccess(null)
+
+  try {
+    let res
+    // prefer an id-based delete if the attendee has an id
+    if (attendee.id) {
+      res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(attendeesModal.eventId)}/attendees/${encodeURIComponent(attendee.id)}`, {
+        method: 'DELETE'
+      })
+    } else if (attendee.email) {
+      // fallback to sending the email in the body
+      res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(attendeesModal.eventId)}/attendees`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: attendee.email })
+      })
+    } else {
+      // last resort: try sending name in body
+      res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(attendeesModal.eventId)}/attendees`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: attendee.name ?? null })
+      })
+    }
+
+    if (!res.ok) {
+      const text = await res.text()
+      const msg = text || `Failed to unregister (status ${res.status})`
+      setError(msg)
+      return
+    }
+
+    // try to parse a response message, but it's optional
+    let data = {}
+    try { data = await res.json() } catch (_) { data = {} }
+
+    // remove the attendee from the modal list
+    setAttendeesModal(prev => ({
+      ...prev,
+      items: prev.items.filter(it => {
+        if (attendee.id && it.id) return it.id !== attendee.id
+        if (attendee.email && it.email) return it.email !== attendee.email
+        return JSON.stringify(it) !== JSON.stringify(attendee)
+      })
+    }))
+
+    // refresh events so counts reflect change
+    await dispatch(fetchEvents())
+
+    const message = data.message ?? data.msg ?? `Unregistered ${attendee.name ?? attendee.email ?? 'user'} successfully`
+    setSuccess(message)
+    setTimeout(() => setSuccess(null), 4000)
+  } catch (err) {
+    setError(err.message || 'Unregister failed')
+    throw err
+  } finally {
+    setUnregistering(prev => { const copy = { ...prev }; delete copy[aKey]; return copy })
+  }
+}
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <header className="max-w-6xl mx-auto mb-8">
@@ -325,11 +395,24 @@ async function showAttendees(eventId) {
               {!attendeesModal.loading && !attendeesModal.error && (
                 <ul className="space-y-2 max-h-64 overflow-auto">
                   {attendeesModal.items.length === 0 && <li className="text-sm text-gray-600">No attendees</li>}
-                  {attendeesModal.items.map((a, i) => (
-                    <li key={a.id ?? a.email ?? i} className="text-sm text-gray-700">
-                      {typeof a === 'string' ? a : (a.name ?? a.email ?? a.username ?? JSON.stringify(a))}
-                    </li>
-                  ))}
+                  {attendeesModal.items.map((a, i) => {
+                    const key = a.id ?? a.email ?? i
+                    return (
+                      <li key={key} className="text-sm text-gray-700 flex justify-between items-center">
+                        <span className="truncate">
+                          {typeof a === 'string' ? a : (a.name ?? a.email ?? a.username ?? JSON.stringify(a))}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => unregisterAttendee(a)}
+                          disabled={!!unregistering[key]}
+                          className="ml-3 text-sm text-red-600 hover:underline disabled:opacity-50"
+                        >
+                          {unregistering[key] ? 'Unregistering…' : 'Unregister'}
+                        </button>
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
