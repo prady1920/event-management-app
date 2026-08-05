@@ -48,39 +48,11 @@ app.post('/api/events/:id/register', (req, res) => {
   const alreadyRegistered = event.attendees.some(a => a.email === email)
   if (alreadyRegistered) return res.status(400).json({ error: 'Attendee with this email is already registered' })
 
-  const attendee = { id: event.attendees.length + 1, name, email }
-  event.attendees.push(attendee)
-  res.status(201).json(attendee)
-})
-
-// New endpoint: Register a user against an event using userId/username/firstName/lastName
-app.post('/api/events/:id/register-user', (req, res) => {
-  const eventId = Number(req.params.id)
-  const event = events.find(e => e.id === eventId)
-  if (!event) return res.status(404).json({ error: 'Event not found' })
-
-  const { userId, username, firstName, lastName } = req.body
-  // Validate required fields
-  if (userId == null || !username) {
-    return res.status(400).json({ error: 'userId and username are required to register' })
-  }
-
-  // Enforce maxCapacity only when it's a positive number
-  if (event.maxCapacity > 0 && event.attendees.length >= event.maxCapacity) {
-    return res.status(400).json({ error: 'Event is full' })
-  }
-
-  // Duplicate check by userId or username
-  const alreadyRegistered = event.attendees.some(a => {
-    if (a.userId != null && userId != null) return String(a.userId) === String(userId)
-    return a.username === username
-  })
-  if (alreadyRegistered) return res.status(400).json({ error: 'User is already registered for this event' })
-
   const attendee = { id: event.attendees.length + 1, userId, username, firstName: firstName || '', lastName: lastName || '' }
   event.attendees.push(attendee)
   // Return a helpful response including the event title
   res.status(201).json({ message: `User successfully added to event ${event.title}`, attendee })
+
 })
 
 // List attendees for an event
