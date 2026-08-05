@@ -19,7 +19,7 @@ export default function App() {
  useEffect(() => {
   	if (status === 'idle') {
     	dispatch(fetchEvents())
-  	}
+   	}
 	}, [status, dispatch])
 	
   // build table headers dynamically from event keys so all properties show up
@@ -36,6 +36,35 @@ export default function App() {
     return ordered
   }, [events])
 
+  // state + functions for viewing attendees list
+  const [attendeesModal, setAttendeesModal] = useState({ open: false, loading: false, items: [], eventId: null, error: null })
+
+  async function showAttendees(eventId) {
+    if (!eventId) {
+      setError('Missing event id')
+      return
+    }
+
+    setAttendeesModal({ open: true, loading: true, items: [], eventId, error: null })
+    try {
+      const res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(eventId)}/attendees`)
+      if (!res.ok) {
+        const text = await res.text()
+        const msg = text || `Failed to load attendees (status ${res.status})`
+        setAttendeesModal(prev => ({ ...prev, loading: false, error: msg }))
+        return
+      }
+      const items = await res.json()
+      setAttendeesModal({ open: true, loading: false, items, eventId, error: null })
+    } catch (err) {
+      setAttendeesModal({ open: true, loading: false, items: [], eventId, error: err.message || 'Failed to fetch attendees' })
+    }
+  }
+
+  function closeAttendees() {
+    setAttendeesModal({ open: false, loading: false, items: [], eventId: null, error: null })
+  }
+
   // friendly cell renderer for arrays/objects
   function renderCell(header, ev) {
     if (header === '_optimistic') {
@@ -44,16 +73,19 @@ export default function App() {
 
     const value = ev[header]
 
-    // special-case attendees (array of objects)
+    // special-case attendees (array of objects): show count as a link that opens attendee list
     if (header === 'attendees' && Array.isArray(value)) {
-      if (value.length === 0) return '—'
-      // prefer name/email/username fields when available
-      return value.map(a => {
-        if (a == null) return ''
-        if (typeof a === 'string') return a
-        if (typeof a === 'object') return a.name ?? a.username ?? a.email ?? JSON.stringify(a)
-        return String(a)
-      }).join(', ')
+      const count = value.length
+      if (count === 0) return '—'
+      return (
+        <button
+          onClick={() => showAttendees(ev.id)}
+          className="text-sm text-blue-600 hover:underline"
+          type="button"
+        >
+          {count}
+        </button>
+      )
     }
 
     // arrays in general: join primitives, otherwise JSON.stringify items
@@ -257,6 +289,32 @@ export default function App() {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <p className="text-gray-500 text-lg">No events yet. Create one to get started!</p>
+          </div>
+        )}
+
+        {/* attendees modal */}
+        {attendeesModal.open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Attendees for event {attendeesModal.eventId}</h2>
+                <button onClick={closeAttendees} className="text-sm text-gray-500 hover:underline">Close</button>
+              </div>
+
+              {attendeesModal.loading && <p className="text-sm text-gray-600">Loading…</p>}
+              {attendeesModal.error && <p className="text-sm text-red-600">{attendeesModal.error}</p>}
+
+              {!attendeesModal.loading && !attendeesModal.error && (
+                <ul className="space-y-2 max-h-64 overflow-auto">
+                  {attendeesModal.items.length === 0 && <li className="text-sm text-gray-600">No attendees</li>}
+                  {attendeesModal.items.map((a, i) => (
+                    <li key={a.id ?? a.email ?? i} className="text-sm text-gray-700">
+                      {typeof a === 'string' ? a : (a.name ?? a.email ?? a.username ?? JSON.stringify(a))}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
       </main>
