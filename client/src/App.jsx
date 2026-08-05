@@ -47,31 +47,33 @@ export default function App() {
   }, [events])
 
   // optimistic add: immediately add a temporary event, then POST; replace on success, remove and show error on failure
-  async function addEventOptimistic(eventBody) {              
-    const tempId = `temp-${Date.now()}`
-    const tempEvent = { id: tempId, ...eventBody, _optimistic: true }
-    setEvents(prev => [...prev, tempEvent])
+  async function addEventOptimistic(eventBody) {
+  const tempId = `temp-${Date.now()}`
+  const tempEvent = { id: tempId, ...eventBody, _optimistic: true }
+  // optimistic update in Redux
+  dispatch(addOptimistic(tempEvent))
 
-    try {
-      const res = await fetch('http://localhost:5000/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventBody)
-      })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Server error')
-      }
-      const created = await res.json()
-      setEvents(prev => prev.map(ev => (ev.id === tempId ? created : ev)))
-      return created
-    } catch (err) {
-      console.error('Failed to create event', err)
-      setEvents(prev => prev.filter(ev => ev.id !== tempId))
-      setError(err.message || 'Failed to create event')
-      throw err
+  try {
+    const res = await fetch('http://localhost:5000/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventBody)
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text || 'Server error')
     }
+    const created = await res.json()
+    // replace optimistic entry with created event
+    dispatch(replaceEvent({ tempId, event: created }))
+    return created
+  } catch (err) {
+    // rollback
+    dispatch(removeEvent(tempId))
+    setError(err.message || 'Failed to create event')
+    throw err
   }
+}
 
  async function registerUser(userBody) {              
      alert("write logic to register user against an event, dont exceed max capacity and dont register duplicate user");    
