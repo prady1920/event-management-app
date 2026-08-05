@@ -360,7 +360,7 @@ async function deleteEvent(eventId) {
 
     {/* title and subtitle */}
     <div className="flex-1 min-w-0">
-      <h1 className="text-3xl sm:text-5xl tracking-tight leading-tight">
+      <h1 className="text-3xl tracking-tight leading-tight">
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200">
           Event Management App
         </span>
@@ -442,9 +442,9 @@ async function deleteEvent(eventId) {
 
         {events.length > 0 ? (
           <div className="overflow-x-auto shadow-md rounded-lg">
-            <table className="w-full bg-white border-collapse">
+            <table className="w-full bg-light-yellow border-collapse">
               <thead>
-                <tr className="bg-gray-100 border-b-2 border-gray-200">
+                <tr className="bg-gray-200 border-b-2 border-gray-200">
                   {headers.map(header => (
                     <th
                       key={header}
