@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 
-export default function RegisterUserForm({ onRegUser, onClose, events = [], lastUserId = 0 }) {
+export default function RegisterUserForm({ onRegUser, onClose, events: propsEvents = [], lastUserId = 0 }) {
   const [userId, setUserId] = useState(() => (Number(lastUserId) ? Number(lastUserId) + 1 : 1))
   const [username, setUsername] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [eventId, setEventId] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // read events from Redux; fall back to any events passed via props
+  const storeEvents = useSelector(state => (state && state.events && Array.isArray(state.events.items) ? state.events.items : []))
+  const events = Array.isArray(propsEvents) && propsEvents.length > 0 ? propsEvents : storeEvents
 
   useEffect(() => {
     setUserId(Number(lastUserId) ? Number(lastUserId) + 1 : 1)
