@@ -144,24 +144,24 @@ const submitLabel = editEvent ? (submitting ? 'Saving...' : 'Save Changes') : (s
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">Description</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Short description"
-            />
-          </div>
+              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+         placeholder="Short description"
+       />
+     </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Location</label>
-            <input
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Event location"
-            />
-          </div>
+     <div>
+       <label className="block text-sm font-medium text-gray-700">Location</label>
+       <input
+         value={location}
+         onChange={e => setLocation(e.target.value)}
+    	 className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+         placeholder="Event location"
+       />
+     </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Max Capacity</label>
