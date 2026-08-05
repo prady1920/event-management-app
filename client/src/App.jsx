@@ -31,6 +31,7 @@ export default function App() {
         Object.keys(ev).forEach(k => keys.add(k))
       }
     })
+
     // provide a stable ordering for common fields first
     const commonOrder = ['id', 'title', 'date', 'location', 'description', 'maxCapacity', 'attendees']
     const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]

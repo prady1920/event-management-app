@@ -6,9 +6,9 @@ app.use(cors())
 app.use(express.json())
 
 const events = [
-  { id: 1, title: 'Sample Event', date: new Date().toISOString().slice(0,10), location: 'Online', description: 'Sample Event', maxCapacity: 0, attendees: [], Actions: ["edit", "delete"] },
-  { id: 2, title: 'Event 2', date: new Date().toISOString().slice(0,10), location: 'Delhi', description: 'AI event', maxCapacity: 20, attendees: [], Actions: ["edit", "delete"] },
-  { id: 3, title: 'Event 3', date: new Date().toISOString().slice(0,10), location: 'Mumbai', description: 'Cloud Event', maxCapacity: 10, attendees: [] , Actions: ["edit", "delete"]}
+  { id: 1, title: 'Sample Event', date: new Date().toISOString().slice(0,10), location: 'Online', description: 'Sample Event', maxCapacity: 0, attendees: []},
+  { id: 2, title: 'Event 2', date: new Date().toISOString().slice(0,10), location: 'Delhi', description: 'AI event', maxCapacity: 20, attendees: []},
+  { id: 3, title: 'Event 3', date: new Date().toISOString().slice(0,10), location: 'Mumbai', description: 'Cloud Event', maxCapacity: 10, attendees: []}
 ]
 
 app.get('/api/events', (req, res) => {
@@ -48,7 +48,7 @@ app.post('/api/events/:id/register', (req, res) => {
   const alreadyRegistered = event.attendees.some(a => a.email === email)
   if (alreadyRegistered) return res.status(400).json({ error: 'Attendee with this email is already registered' })
 
-  const attendee = { id: event.attendees.length + 1, userId, username, firstName: firstName || '', lastName: lastName || '' }
+  const attendee = { id: event.attendees.length + 1, name: name , email: email }
   event.attendees.push(attendee)
   // Return a helpful response including the event title
   res.status(201).json({ message: `User successfully added to event ${event.title}`, attendee })

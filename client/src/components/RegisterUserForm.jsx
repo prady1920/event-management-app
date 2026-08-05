@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
 export default function RegisterUserForm({ onRegUser, onClose, events: propsEvents = [], lastUserId = 0 }) {
-  const [userId, setUserId] = useState(() => (Number(lastUserId) ? Number(lastUserId) + 1 : 1))
-  const [username, setUsername] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [eventId, setEventId] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -14,9 +12,6 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
   const storeEvents = useSelector(state => (state && state.events && Array.isArray(state.events.items) ? state.events.items : []))
   const events = Array.isArray(propsEvents) && propsEvents.length > 0 ? propsEvents : storeEvents
 
-  useEffect(() => {
-    setUserId(Number(lastUserId) ? Number(lastUserId) + 1 : 1)
-  }, [lastUserId])
 
   // Helpers to handle different event shapes (strings or objects)
   function getEventValue(ev) {
@@ -34,10 +29,7 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
     e.preventDefault()
 
     const body = {
-      userId: Number(userId) || userId,
-      username: username.trim(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      name: name.trim(),
       email: email.trim(),
       eventId: eventId || null
     }
@@ -54,13 +46,9 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
       console.error(err)
     } finally {
       setSubmitting(false)
-      setUsername('')
-      setFirstName('')
-      setLastName('')
+      setName('')
       setEmail('')
       setEventId('')
-      // reset userId to next value based on prop
-      setUserId(Number(lastUserId) ? Number(lastUserId) + 1 : 1)
     }
   }
 
@@ -71,46 +59,18 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
       <div className="relative bg-white w-full max-w-lg mx-4 rounded-lg shadow-lg border border-gray-200 p-6 z-10">
         <h2 className="text-xl font-medium mb-4">Register User</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">User ID</label>
-            <input
-              value={userId}
-              readOnly
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm bg-gray-100 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="User ID"
-            />
-          </div>
+
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Username</label>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="User Name"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
-            <input
-              value={firstName}
+              value={name}
               onChange={e => setFirstName(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="First Name"
+              placeholder="Name"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
-            <input
-              value={lastName}
-              onChange={e => setLastName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Last Name"
-            />
-          </div>
 
 	<div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
