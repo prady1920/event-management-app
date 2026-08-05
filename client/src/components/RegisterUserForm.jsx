@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 export default function RegisterUserForm({ onRegUser, onClose }) {
   const [username, setUsername] = useState('')
-   
+  const [submitting, setSubmitting] = useState(false)
+
   async function handleSubmit(e) {
     e.preventDefault()
-  
+
     const body = {
       username: username.trim()
     }
@@ -14,15 +15,14 @@ export default function RegisterUserForm({ onRegUser, onClose }) {
     // optimistic update: inform parent, close form immediately
     try {
       if (onRegUser) {
-        // fire and forget — parent will handle errors and updating the optimistic row
-        onRegUser(body).catch(() => {})
+        // let parent handle optimistic updates/errors; await so we can show submitting state
+        await onRegUser(body).catch(() => {})
       }
       onClose()
     } catch (err) {
       console.error(err)
     } finally {
       setSubmitting(false)
-      // reset fields; parent now has the optimistic event
       setUsername('')
     }
   }
@@ -38,12 +38,18 @@ export default function RegisterUserForm({ onRegUser, onClose }) {
             <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               value={username}
-              onChange={e => setTitle(e.target.value)}
-              className={`mt-1 block w-full rounded-md border ${errors.title ? 'border-red-500' : 'border-gray-300'} shadow-sm focus:ring-blue-500 focus:border-blue-500`}
+              onChange={e => setUsername(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="User Name"
               required
             />
-            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+            <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded">
+              {submitting ? 'Registering…' : 'Register'}
+            </button>
           </div>
         </form>
       </div>
