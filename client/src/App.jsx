@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import AddEventForm from './components/AddEventForm'
+import RegisterUserForm from './components/RegisterUserForm'
 
 export default function App() {
   const [events, setEvents] = useState([])
   const [showForm, setShowForm] = useState(false)
+  const [registerForm, setRegisterForm] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function App() {
   }, [events])
 
   // optimistic add: immediately add a temporary event, then POST; replace on success, remove and show error on failure
-  async function addEventOptimistic(eventBody) {
+  async function addEventOptimistic(eventBody) {              
     const tempId = `temp-${Date.now()}`
     const tempEvent = { id: tempId, ...eventBody, _optimistic: true }
     setEvents(prev => [...prev, tempEvent])
@@ -55,6 +57,10 @@ export default function App() {
       setError(err.message || 'Failed to create event')
       throw err
     }
+  }
+
+ async function registerUser(userBody) {              
+     alert("write logic to register user against an event, dont exceed max capacity and dont register duplicate user");    
   }
 
   return (
@@ -85,6 +91,23 @@ export default function App() {
             Add New Event
           </button>
         </div>
+
+	<div className="mb-8 flex gap-3">
+          <button
+            type="button"
+            onClick={() => setRegisterForm(true)}
+            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            Register User
+          </button>
+        </div>
+
+	{registerForm && (
+          <RegisterUserForm
+	    onRegUser = {registerUser}
+            onClose={() => setRegisterForm(false)}
+          />
+        )}
 
         {showForm && (
           <AddEventForm
@@ -133,3 +156,4 @@ export default function App() {
     </div>
   )
 }
+                     
