@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchEvents, addOptimistic, replaceEvent, removeEvent } from './store/eventsSlice'
 import AddEventForm from './components/AddEventForm'
 import RegisterUserForm from './components/RegisterUserForm'
 
@@ -6,6 +8,12 @@ export default function App() {
   const [events, setEvents] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [registerForm, setRegisterForm] = useState(false)
+  const [error, setError] = useState(null)
+
+  const dispatch = useDispatch()
+  const events = useSelector(state => state.events.items)
+  const status = useSelector(state => state.events.status)
+  const storeError = useSelector(state => state.events.error)
   const [error, setError] = useState(null)
 
   useEffect(() => {
