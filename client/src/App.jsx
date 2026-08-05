@@ -360,7 +360,7 @@ async function deleteEvent(eventId) {
 
     {/* title and subtitle */}
     <div className="flex-1 min-w-0">
-      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+      <h1 className="text-3xl sm:text-5xl tracking-tight leading-tight">
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200">
           Event Management App
         </span>
