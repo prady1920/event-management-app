@@ -400,11 +400,18 @@ async function deleteEvent(eventId) {
         )}
 
         {showForm && (
-          <AddEventForm
-            onAddOptimistic={addEventOptimistic}
-            onClose={() => setShowForm(false)}
-          />
-        )}
+  	<AddEventForm
+    	onAddOptimistic={addEventOptimistic}
+    	onClose={() => { setShowForm(false); setEditEvent(null) }}
+    	editEvent={editEvent}
+    	onEventUpdated={async (updated) => {
+      	// refresh events from server so the table shows the updated fields
+      	await dispatch(fetchEvents())
+      	setSuccess('Event updated')
+      	setTimeout(() => setSuccess(null), 3000)
+    	}}
+  	/>
+	)}
 
         {events.length > 0 ? (
           <div className="overflow-x-auto shadow-md rounded-lg">
