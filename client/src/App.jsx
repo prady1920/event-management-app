@@ -8,6 +8,7 @@ export default function App() {
 
   const [showForm, setShowForm] = useState(false)
   const [registerForm, setRegisterForm] = useState(false)
+  const [editEvent, setEditEvent] = useState(null)
 
   const dispatch = useDispatch()
   const events = useSelector(state => state.events.items)
@@ -19,7 +20,7 @@ export default function App() {
  useEffect(() => {
   	if (status === 'idle') {
       	dispatch(fetchEvents())
-     	}
+      	}
 	}, [status, dispatch])
 	
   // build table headers dynamically from event keys so all properties show up
@@ -33,6 +34,8 @@ export default function App() {
     // provide a stable ordering for common fields first
     const commonOrder = ['id', 'title', 'date', 'location', 'description', 'maxCapacity', 'attendees']
     const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]
+    // always include actions column at the end for edit/delete icons
+    if (!ordered.includes('actions')) ordered.push('actions')
     return ordered
   }, [events])
 
@@ -70,6 +73,51 @@ export default function App() {
   function renderCell(header, ev) {
     if (header === '_optimistic') {
       return ev._optimistic ? 'saving…' : 'committed'
+    }
+
+    // special actions column (edit/delete)
+    if (header === 'actions') {
+      const id = ev?.id
+      return (
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              // open edit form (simple opener; integrate with your AddEventForm if it supports editing)
+              setEditEvent(ev)
+              setShowForm(true)
+            }}
+            title="Edit"
+            className="p-1 rounded text-gray-600 hover:bg-gray-100"
+          >
+            {/* pencil icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+              <path fillRule="evenodd" d="M2 15.25V18h2.75l8.486-8.486-2.75-2.75L2 15.25z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!id) {
+                // no id -> cannot delete on server; remove locally if desired
+                setError('Cannot delete event without an id')
+                return
+              }
+              deleteEvent(id)
+            }}
+            title="Delete"
+            className="p-1 rounded text-red-600 hover:bg-red-50 disabled:opacity-50"
+            disabled={!ev?.id}
+          >
+            {/* trash icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M6 2a1 1 0 00-.894.553L4 4H2a1 1 0 100 2h1v9a2 2 0 002 2h8a2 2 0 002-2V6h1a1 1 0 100-2h-2l-1.106-1.447A1 1 0 0014 2H6zm3 5a1 1 0 10-2 0v6a1 1 0 102 0V7zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V7z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      )
     }
 
     const value = ev[header]
@@ -142,24 +190,6 @@ export default function App() {
     dispatch(removeEvent(tempId))
     setError(err.message || 'Failed to create event')
     throw err
-  }
-}
-
-// fetch attendees for an event
-async function showAttendees(eventId) {
-  if (!eventId) { setError('Missing event id'); return }
-  setAttendeesModal({ open: true, loading: true, items: [], eventId, error: null })
-  try {
-    const res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(eventId)}/attendees`)
-    if (!res.ok) {
-      const text = await res.text()
-      setAttendeesModal(prev => ({ ...prev, loading: false, error: text || `Failed to load attendees (status ${res.status})` }))
-      return
-    }
-    const items = await res.json()
-    setAttendeesModal({ open: true, loading: false, items, eventId, error: null })
-  } catch (err) {
-    setAttendeesModal({ open: true, loading: false, items: [], eventId, error: err.message || 'Failed to fetch attendees' })
   }
 }
 
@@ -278,6 +308,38 @@ async function unregisterAttendee(attendee) {
   }
 }
 
+// delete an event by id
+async function deleteEvent(eventId) {
+  if (!eventId) {
+    setError('Missing event id')
+    return
+  }
+  if (!window.confirm('Are you sure you want to delete this event?')) return
+
+  setError(null)
+  setSuccess(null)
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(eventId)}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      const msg = text || `Failed to delete event (status ${res.status})`
+      setError(msg)
+      return
+    }
+
+    // remove from store
+    dispatch(removeEvent(eventId))
+    setSuccess('Event deleted')
+    setTimeout(() => setSuccess(null), 3000)
+  } catch (err) {
+    setError(err.message || 'Delete failed')
+    throw err
+  }
+}
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <header className="max-w-6xl mx-auto mb-8">
@@ -312,7 +374,7 @@ async function unregisterAttendee(attendee) {
         <div className="mb-8 flex gap-3">
           <button
             type="button"
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); setEditEvent(null) }}
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             Add New Event
@@ -353,7 +415,7 @@ async function unregisterAttendee(attendee) {
                       key={header}
                       className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
                     >
-                      {header}
+                      {header === 'actions' ? 'Actions' : header}
                     </th>
                   ))}
                 </tr>
