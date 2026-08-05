@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-export default function RegisterUserForm({ onRegisterUser, onClose }) {
+export default function RegisterUserForm({ onRegUser, onClose }) {
   const [username, setUsername] = useState('')
    
   async function handleSubmit(e) {
@@ -13,9 +13,9 @@ export default function RegisterUserForm({ onRegisterUser, onClose }) {
     setSubmitting(true)
     // optimistic update: inform parent, close form immediately
     try {
-      if (onRegisterUser) {
+      if (onRegUser) {
         // fire and forget — parent will handle errors and updating the optimistic row
-        onRegisterUser(body).catch(() => {})
+        onRegUser(body).catch(() => {})
       }
       onClose()
     } catch (err) {
@@ -23,11 +23,7 @@ export default function RegisterUserForm({ onRegisterUser, onClose }) {
     } finally {
       setSubmitting(false)
       // reset fields; parent now has the optimistic event
-      setTitle('')
-      setDescription('')
-      setLocation('')
-      setMaxCapacity('')
-      setDate('')
+      setUsername('')
     }
   }
 
