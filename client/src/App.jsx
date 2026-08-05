@@ -346,8 +346,45 @@ async function deleteEvent(eventId) {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <header className="max-w-6xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Event Management App</h1>
-      </header>
+  <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl p-6 shadow-xl flex items-center gap-6">
+    {/* logo / icon */}
+    <div className="flex-shrink-0">
+      <div className="h-14 w-14 rounded-full bg-white/20 flex items-center justify-center">
+        {/* calendar icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" className="opacity-90" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      </div>
+    </div>
+
+    {/* title and subtitle */}
+    <div className="flex-1 min-w-0">
+      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200">
+          Event Management App
+        </span>
+      </h1>
+      <p className="mt-1 text-sm sm:text-base text-white/90 truncate">
+        Create, manage, and register attendees — fast, simple, and delightful.
+      </p>
+    </div>
+
+    {/* badges / actions */}
+    <div className="flex items-center gap-3">
+      <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-sm font-medium text-white/95">
+        v1.0
+      </span>
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+        className="hidden sm:inline-flex px-4 py-2 bg-white text-blue-700 font-semibold rounded-md shadow-sm hover:bg-white/90 transition"
+      >
+        Get Started
+      </button>
+    </div>
+  </div>
+</header>
 
       <main className="max-w-6xl mx-auto">
         {error && (
