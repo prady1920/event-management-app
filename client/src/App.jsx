@@ -195,7 +195,7 @@ export default function App() {
 }
 
  async function registerUser(userBody) {
-  // userBody expected: { userId, username, firstName, lastName, email, eventId }
+  // userBody expected: { name, userId, username, firstName, lastName, email, eventId }
   const { eventId, email, firstName, lastName, username } = userBody || {}
 
   if (!eventId) {
@@ -207,7 +207,9 @@ export default function App() {
     throw new Error('Missing email')
   }
 
-  const name = [firstName, lastName].filter(Boolean).join(' ') || username || `user-${userBody.userId || 'anon'}`
+  // prefer an explicit name sent from the form; fall back to first/last, username, or generated id
+  const providedName = (userBody && typeof userBody.name === 'string' && userBody.name.trim()) ? userBody.name.trim() : null
+  const name = providedName || [firstName, lastName].filter(Boolean).join(' ') || username || `user-${userBody?.userId || 'anon'}`
 
   try {
     // clear previous messages
@@ -289,7 +291,7 @@ async function unregisterAttendee(attendee) {
     setAttendeesModal(prev => ({
       ...prev,
       items: prev.items.filter(it => {
-        if (attendee.id && it.id) return it.id !== attendee.id
+        if (attendee.name && it.name) return it.name !== attendee.name
         if (attendee.email && it.email) return it.email !== attendee.email
         return JSON.stringify(it) !== JSON.stringify(attendee)
       })
@@ -372,25 +374,27 @@ async function deleteEvent(eventId) {
           </div>
         )}
 
-        <div className="mb-8 flex gap-3">
-          <button
-            type="button"
-            onClick={() => { setShowForm(true); setEditEvent(null) }}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            Add New Event
-          </button>
-        </div>
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+  <div className="w-full sm:w-auto">
+    <button
+      type="button"
+      onClick={() => { setShowForm(true); setEditEvent(null) }}
+      className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+    >
+      Add New Event
+    </button>
+  </div>
 
-	<div className="mb-8 flex gap-3">
-          <button
-            type="button"
-            onClick={() => setRegisterForm(true)}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            Register User
-          </button>
-        </div>
+  <div className="w-full sm:w-auto text-right">
+    <button
+      type="button"
+      onClick={() => setRegisterForm(true)}
+      className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+    >
+      Register User
+    </button>
+  </div>
+</div>
 
 	{registerForm && (
           <RegisterUserForm
@@ -466,11 +470,11 @@ async function deleteEvent(eventId) {
                 <ul className="space-y-2 max-h-64 overflow-auto">
                   {attendeesModal.items.length === 0 && <li className="text-sm text-gray-600">No attendees</li>}
                   {attendeesModal.items.map((a, i) => {
-                    const key = a.id ?? a.email ?? i
+                    const key = a.name ?? a.name ?? i
                     return (
                       <li key={key} className="text-sm text-gray-700 flex justify-between items-center">
                         <span className="truncate">
-                          {typeof a === 'string' ? a : (a.name ?? a.email ?? a.username ?? JSON.stringify(a))}
+                          {typeof a === 'string' ? a : (a.name ?? a.email ?? JSON.stringify(a))}
                         </span>
                         <button
                           type="button"
