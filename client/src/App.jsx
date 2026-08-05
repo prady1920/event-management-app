@@ -5,7 +5,7 @@ import AddEventForm from './components/AddEventForm'
 import RegisterUserForm from './components/RegisterUserForm'
 
 export default function App() {
-  const [events, setEvents] = useState([])
+
   const [showForm, setShowForm] = useState(false)
   const [registerForm, setRegisterForm] = useState(false)
 
