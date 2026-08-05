@@ -6,6 +6,7 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
   const [username, setUsername] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
   const [eventId, setEventId] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -37,6 +38,7 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
       username: username.trim(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      email: email.trim(),
       eventId: eventId || null
     }
 
@@ -55,6 +57,7 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
       setUsername('')
       setFirstName('')
       setLastName('')
+      setEmail('')
       setEventId('')
       // reset userId to next value based on prop
       setUserId(Number(lastUserId) ? Number(lastUserId) + 1 : 1)
@@ -106,6 +109,18 @@ export default function RegisterUserForm({ onRegUser, onClose, events: propsEven
               onChange={e => setLastName(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="Last Name"
+            />
+          </div>
+
+	<div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              placeholder="user@example.com"
+              type="email"
+              required
             />
           </div>
 

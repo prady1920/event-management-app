@@ -14,6 +14,7 @@ export default function App() {
   const status = useSelector(state => state.events.status)
   const storeError = useSelector(state => state.events.error)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
 
  useEffect(() => {
   	if (status === 'idle') {
@@ -34,6 +35,53 @@ export default function App() {
     const ordered = [...commonOrder.filter(k => keys.has(k)), ...[...keys].filter(k => !commonOrder.includes(k))]
     return ordered
   }, [events])
+
+  // friendly cell renderer for arrays/objects
+  function renderCell(header, ev) {
+    if (header === '_optimistic') {
+      return ev._optimistic ? 'saving…' : 'committed'
+    }
+
+    const value = ev[header]
+
+    // special-case attendees (array of objects)
+    if (header === 'attendees' && Array.isArray(value)) {
+      if (value.length === 0) return '—'
+      // prefer name/email/username fields when available
+      return value.map(a => {
+        if (a == null) return ''
+        if (typeof a === 'string') return a
+        if (typeof a === 'object') return a.name ?? a.username ?? a.email ?? JSON.stringify(a)
+        return String(a)
+      }).join(', ')
+    }
+
+    // arrays in general: join primitives, otherwise JSON.stringify items
+    if (Array.isArray(value)) {
+      if (value.length === 0) return '—'
+      const joined = value.map(item => {
+        if (item == null) return ''
+        if (typeof item === 'object') return JSON.stringify(item)
+        return String(item)
+      }).join(', ')
+      return joined
+    }
+
+    // objects: pretty JSON (fall back to string)
+    if (value && typeof value === 'object') {
+      // try to show a human-friendly field if present
+      const friendly = value.name ?? value.title ?? value.label
+      if (friendly) return String(friendly)
+      try {
+        return JSON.stringify(value)
+      } catch {
+        return String(value)
+      }
+    }
+
+    if (value !== undefined && value !== null && value !== '') return String(value)
+    return '—'
+  }
 
   // optimistic add: immediately add a temporary event, then POST; replace on success, remove and show error on failure
   async function addEventOptimistic(eventBody) {
@@ -64,9 +112,51 @@ export default function App() {
   }
 }
 
- async function registerUser(userBody) {              
-     alert("write logic to register user against an event, dont exceed max capacity and dont register duplicate user");    
+ async function registerUser(userBody) {
+  // userBody expected: { userId, username, firstName, lastName, email, eventId }
+  const { eventId, email, firstName, lastName, username } = userBody || {}
+
+  if (!eventId) {
+    setError('Please select an event to register for')
+    throw new Error('Missing eventId')
   }
+  if (!email || !email.trim()) {
+    setError('Email is required to register')
+    throw new Error('Missing email')
+  }
+
+  const name = [firstName, lastName].filter(Boolean).join(' ') || username || `user-${userBody.userId || 'anon'}`
+
+  try {
+    // clear previous messages
+    setError(null)
+    setSuccess(null)
+
+    const res = await fetch(`http://localhost:5000/api/events/${encodeURIComponent(eventId)}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email: email.trim() })
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      const msg = text || `Failed to register (status ${res.status})`
+      setError(msg)
+      throw new Error(msg)
+    }
+
+    const attendee = await res.json()
+    // refresh events so attendee list is up-to-date
+    await dispatch(fetchEvents())
+    // show success briefly
+    setSuccess(`Registered ${attendee.name ?? attendee.email ?? 'user'} successfully`)
+    setTimeout(() => setSuccess(null), 4000)
+    return attendee
+  } catch (err) {
+    setError(err.message || 'Registration failed')
+    throw err
+  }
+}
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -81,6 +171,18 @@ export default function App() {
             <button
               onClick={() => setError(null)}
               className="text-sm text-red-700 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-3 rounded-md bg-green-50 border border-green-200 flex justify-between items-center">
+            <p className="text-sm text-green-700">{success}</p>
+            <button
+              onClick={() => setSuccess(null)}
+              className="text-sm text-green-700 underline"
             >
               Dismiss
             </button>
@@ -144,7 +246,7 @@ export default function App() {
                         key={`${ev.id ?? index}-${header}`}
                         className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
                       >
-                        {header === '_optimistic' ? (ev._optimistic ? 'saving…' : 'committed') : (ev[header] !== undefined && ev[header] !== null ? String(ev[header]) : '—')}
+                        {renderCell(header, ev)}
                       </td>
                     ))}
                   </tr>
@@ -161,4 +263,3 @@ export default function App() {
     </div>
   )
 }
-                     
