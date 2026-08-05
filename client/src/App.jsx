@@ -21,16 +21,6 @@ export default function App() {
   	}
 	}, [status, dispatch])
 	
-  useEffect(() => {
-    fetch('http://localhost:5000/api/events')
-      .then(res => res.json())
-      .then(setEvents)
-      .catch(err => {
-        console.error(err)
-        setError('Failed to load events')
-      })
-  }, [])
-
   // build table headers dynamically from event keys so all properties show up
   const headers = useMemo(() => {
     const keys = new Set()
