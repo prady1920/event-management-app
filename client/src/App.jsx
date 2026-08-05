@@ -16,6 +16,12 @@ export default function App() {
   const storeError = useSelector(state => state.events.error)
   const [error, setError] = useState(null)
 
+ useEffect(() => {
+  	if (status === 'idle') {
+    	dispatch(fetchEvents())
+  	}
+	}, [status, dispatch])
+	
   useEffect(() => {
     fetch('http://localhost:5000/api/events')
       .then(res => res.json())
