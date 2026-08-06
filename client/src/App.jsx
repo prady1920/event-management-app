@@ -165,8 +165,8 @@ export default function App() {
     return '—'
   }
 
-  // optimistic add: immediately add a temporary event, then POST; replace on success, remove and show error on failure
-  async function addEventOptimistic(eventBody) {
+  // add event: immediately add a temporary event, then POST; replace on success, remove and show error on failure
+  async function addEvent(eventBody) {
   const tempId = `temp-${Date.now()}`
   const tempEvent = { id: tempId, ...eventBody, _optimistic: true }
   // optimistic update in Redux
@@ -428,7 +428,7 @@ async function deleteEvent(eventId) {
 
         {showForm && (
   	<AddEventForm
-    	onAddOptimistic={addEventOptimistic}
+    	onAddOptimistic={addEvent}
     	onClose={() => { setShowForm(false); setEditEvent(null) }}
     	editEvent={editEvent}
     	onEventUpdated={async (updated) => {
