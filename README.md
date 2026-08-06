@@ -126,11 +126,5 @@ Development
   - "start": "node server.js" — starts the server.
   - "dev": "nodemon server.js" — starts with nodemon for development.
 - To extend this project for production, replace the in-memory models with a persistent datastore, add authentication, and tighten CORS origins.
-
-Further questions or changes
-
-If you'd like, I can:
-- Add example curl commands for each endpoint.
-- Add a short Postman/Insomnia collection to exercise the API.
 - Convert the in-memory store to a simple file-based JSON persistence for development.
 
