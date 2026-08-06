@@ -35,17 +35,20 @@ cd server
 npm start
 # or for auto-reload during development:
 # npm run dev
+
+# run tests:
+# npm test
 ```
 
 By default the frontend runs on http://localhost:5173 and the backend on http://localhost:5000.
 
 Server notes
 
-- The server uses Express and exposes a small REST API under /api/events.
-- Basic security and middleware are enabled (helmet, cors, morgan) in the app entry.
-- The server enforces validation and business rules (see API docs below).
-- The in-memory data store means there is no persistence; switching to a database would require changing the model layer.
-
+The server uses Express and exposes a small REST API under /api/events.
+Middleware currently enabled in the app entry: cors and express.json. (Note: previous README mentioned helmet and morgan — those are not present in the current code.)
+The server enforces validation and business rules (see API docs below).
+An in-memory per-event promise-chain lock serializes concurrent registrations to avoid race conditions; the lock implementation includes a no-op rejection handler to avoid unhandled promise rejections.
+The in-memory data store means there is no persistence; to extend this project for production replace the models with a persistent datastore.
 API
 
 Base URL: http://localhost:5000/api/events
@@ -91,11 +94,11 @@ Routes
 
 - DELETE /api/events/:id/attendees
   - Unregister an attendee by providing identifying data in the request body (preferred: { email }).
-  - Request JSON body examples:
-    - { "email": "user@example.com" }
-    - { "name": "Full Name" } (fallback — not guaranteed to be unique)
-  - Response: 200 OK with the removed attendee object.
-  - Errors: 400 if neither email nor name provided; 404 if event or attendee not found.
+   - Request JSON body examples:
+   - { "email": "user@example.com" }
+   - Response: 200 OK with the removed attendee object.
+   - Errors: 400 if email not provided; 404 if event or attendee not found.
+
 
 - PUT /api/events/:id
   - Update event fields.
@@ -118,13 +121,14 @@ Client integration notes
 
 Errors
 
-- API error responses use JSON with an "error" message or the HTTP error body provided by the server. The server uses a central error handler which sets appropriate status codes (400, 404, 500, etc.).
+- API error responses use JSON with an "error" message. The server uses a central error handler which sets appropriate status codes (400, 404, 500, etc.).
 
 Development
 
 - server/package.json includes:
   - "start": "node server.js" — starts the server.
   - "dev": "nodemon server.js" — starts with nodemon for development.
+  - "test": "jest" — run server tests (jest is included in devDependencies).
+- client/package.json includes a basic Vite setup and a "test": "jest" entry; the client uses React + Redux Toolkit and Vite for development.
 - To extend this project for production, replace the in-memory models with a persistent datastore, add authentication, and tighten CORS origins.
-- Convert the in-memory store to a simple file-based JSON persistence for development.
-
+- Convert the in-memory store to a simple file-based JSON persistence for development if desired.
